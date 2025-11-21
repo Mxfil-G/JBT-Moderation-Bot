@@ -1,0 +1,13 @@
+{
+  "name": "bot-pinger",
+  "version": "1.0.0",
+  "description": "Pings Replit bot every 5 minutes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "node-cron": "^3.0.2",
+    "axios": "^1.5.0"
+  }
+}
