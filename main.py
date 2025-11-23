@@ -1,26 +1,10 @@
 import discord
+from discord import app_commands 
 from discord.ext import commands
 import os
-from flask import Flask
-from threading import Thread
 import datetime
 import json
-import asyncio
-
-# Flask app for keeping the bot alive
-app = Flask('')
-
-@app.route('/')
-def home():
-    return f"✅ Bot is alive! {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.daemon = True
-    t.start()
+import asyncio 
 
 # Get token directly from Replit Secrets
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
@@ -75,6 +59,33 @@ class JSONManager:
         data[user_id].append(warn_data)
         self.save_data(self.warns_file, data)
         return warn_data
+
+    def remove_warn(self, user_id, warn_id):
+        data = self.load_data(self.warns_file)
+        user_id = str(user_id)
+
+        if user_id in data:
+            data[user_id] = [w for w in data[user_id] if w['warn_id'] != warn_id]
+            self.save_data(self.warns_file, data)
+            return True
+        return False
+
+    def clear_warns(self, user_id):
+        data = self.load_data(self.warns_file)
+        user_id = str(user_id)
+
+        if user_id in data:
+            del data[user_id]
+            self.save_data(self.warns_file, data)
+            return True
+        return False
+
+    # ADDED THE MISSING METHOD
+    def get_config(self):
+        return self.load_data(self.config_file)
+
+    def update_config(self, new_config):
+        self.save_data(self.config_file, new_config)
 
 # Initialize JSON manager
 json_manager = JSONManager()
@@ -218,29 +229,55 @@ async def warnings(interaction: discord.Interaction, member: discord.Member):
     except Exception as e:
         await interaction.response.send_message(f"❌ Error getting warnings: {e}", ephemeral=True)
 
+@tree.command(name="remove_warning", description="Remove a specific warning")
+@app_commands.describe(member="The member", warn_id="The warning ID to remove")
+@app_commands.checks.has_permissions(kick_members=True)
+async def remove_warning(interaction: discord.Interaction, member: discord.Member, warn_id: int):
+    try:
+        if json_manager.remove_warn(member.id, warn_id):
+            await interaction.response.send_message(f"✅ Removed warning #{warn_id} from {member.mention}", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Warning not found", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Error removing warning: {e}", ephemeral=True)
+
+@tree.command(name="clear_warnings", description="Clear all warnings from a member")
+@app_commands.describe(member="The member to clear warnings from")
+@app_commands.checks.has_permissions(kick_members=True)
+async def clear_warnings(interaction: discord.Interaction, member: discord.Member):
+    try:
+        if json_manager.clear_warns(member.id):
+            await interaction.response.send_message(f"✅ Cleared all warnings from {member.mention}", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ No warnings found", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Error clearing warnings: {e}", ephemeral=True)
+
 @tree.command(name="ping", description="Check bot latency")
 async def ping(interaction: discord.Interaction):
     latency = round(bot.latency * 1000)
     await interaction.response.send_message(f"🏓 Pong! Latency: {latency}ms")
 
-# Auto-moderation
+# Auto-moderation - FIXED VERSION
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
 
-    config = json_manager.get_config()
+    try:
+        config = json_manager.get_config()  # This should work now
 
-    if config.get('auto_mod', True):
-        bad_words = config.get('bad_words', [])
-        if any(word in message.content.lower() for word in bad_words):
-            await message.delete()
-            warning = await message.channel.send(f"🚫 {message.author.mention}, no inappropriate language!")
-            await asyncio.sleep(5)
-            await warning.delete()
+        if config.get('auto_mod', True):
+            bad_words = config.get('bad_words', [])
+            if any(word in message.content.lower() for word in bad_words):
+                await message.delete()
+                warning = await message.channel.send(f"🚫 {message.author.mention}, no inappropriate language!")
+                await asyncio.sleep(5)
+                await warning.delete()
+    except Exception as e:
+        print(f"Error in auto-moderation: {e}")
 
     await bot.process_commands(message)
 
-# Start everything
-keep_alive()
+# Start bot
 bot.run(DISCORD_TOKEN)
