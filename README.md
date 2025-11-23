@@ -73,8 +73,7 @@ The bot creates a `config.json` file with default settings:
 - `auto_mod`: Enable/disable auto-moderation (default: true)
 
 ## Port Configuration
-- **Port 8080**: Flask keep-alive server (main.py)
-- **Port 3000**: Optional Node.js pinger (server.js)
+- **Port 8080**: Node keep-alive server (Server.js)
 
 ## Deployment
 This bot is configured for deployment on Replit with VM deployment type (always running).
@@ -84,7 +83,7 @@ This bot is configured for deployment on Replit with VM deployment type (always 
 
 ## Project Architecture
 - **Language**: Python 3.11
-- **Framework**: discord.py 2.6+, Flask 3.1+
-- **Architecture**: Event-driven Discord bot with Flask web server
+- **Framework**: discord.py 2.6+, 
+- **Architecture**: Event-driven Discord bot 
 - **Data Storage**: JSON files (warns.json, config.json)
-- **Keep-Alive**: Flask server + optional Node.js pinger
+- **Keep-Alive**: Node.js pinger
