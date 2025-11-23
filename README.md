@@ -7,7 +7,7 @@ A feature-rich Discord moderation bot built with discord.py. This bot provides c
 - **2025-11-21**: Initial Replit environment setup
   - Installed Python 3.11 and Node.js 20
   - Configured workflow to run the Discord bot
-  - Set up Flask keep-alive server on port 8080
+  - Set up Node keep-alive server on port 8080
   - Added .gitignore for Python and Node.js
   - Fixed requirements.txt formatting error
 
@@ -38,8 +38,8 @@ A feature-rich Discord moderation bot built with discord.py. This bot provides c
 - Auto-mutes users when they reach max warnings (default: 3)
 
 ### Keep-Alive System
-- Flask web server on port 8080 keeps bot online
-- Optional Node.js pinger (server.js) pings bot every 5 minutes
+
+-  Node.js pinger (server.js) pings bot every 5 minutes
 
 ## Required Secrets
 - `DISCORD_TOKEN` - Your Discord bot token from Discord Developer Portal
